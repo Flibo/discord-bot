@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/Flibo/discord-bot#readme",
   "dependencies": {
-    "discord.io": "^2.5.3"
+    "discord.js": "^11.2.1"
   },
   "devDependencies": {
     "eslint": "^4.11.0"
