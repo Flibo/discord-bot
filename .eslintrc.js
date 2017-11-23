@@ -38,8 +38,7 @@ module.exports = {
             "only-multiline"
         ],
         "no-unused-vars": [
-            "error",
-            { "argsIgnorePattern": "^event$" }
+            "error"
         ]
     }
 };

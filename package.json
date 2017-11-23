@@ -22,7 +22,8 @@
   },
   "homepage": "https://github.com/Flibo/discord-bot#readme",
   "dependencies": {
-    "discord.js": "^11.2.1"
+    "discord.js": "^11.2.1",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "eslint": "^4.11.0"
