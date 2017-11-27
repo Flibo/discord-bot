@@ -13,6 +13,9 @@ services:
       - ".:/app"
     links:
       - db:db
+    depends_on:
+      - db
+    entrypoint: ./wait-for-postgres.sh db 5432 npm start
     restart: always
   db:
     image: kiasaki/alpine-postgres

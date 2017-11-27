@@ -1,6 +1,6 @@
 FROM node:8.6-alpine
 
-RUN apk add --update-cache build-base python git
+RUN apk add --update-cache build-base python git postgresql bash
 
 WORKDIR /app
 
