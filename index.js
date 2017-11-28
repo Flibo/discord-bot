@@ -7,6 +7,8 @@ const winston = require('winston');
 const bot = new Discord.Client();
 const db = new pgClient();
 
+const UPDATE_INTERVAL = 5000;
+
 const getOnlineUsers = (bot) => {
   const guildIDs = bot.guilds.map(guild => guild.id);
   let users = [];
@@ -20,6 +22,24 @@ const getOnlineUsers = (bot) => {
   return users;
 };
 
+const updateBalance = (bot) => {
+  const users = getOnlineUsers(bot);
+  console.log('[users]', users);
+
+  /*
+  const text = 'INSERT INTO users(name, email) VALUES($1, $2) RETURNING *';
+  const values = ['brianc', 'brian.m.carlson@gmail.com'];
+
+  try {
+    const res = await pool.query(text, values)
+    console.log(res.rows[0])
+    // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+  } catch(err) {
+    console.log(err.stack)
+  }
+  */
+};
+
 bot.on('ready', async () => {
   winston.info('Successfully logged into Discord');
 
@@ -31,20 +51,24 @@ bot.on('ready', async () => {
   }
 
   winston.info('Successfully connected to DB');
+  winston.info('Bot ready and running!');
+
+  setInterval(() => updateBalance(bot), UPDATE_INTERVAL);
 
   const res = await db.query('SELECT $1::text as message', ['Hello world!']);
   console.log(res.rows[0].message);
 
-  await db.end();
 
-  const users = getOnlineUsers(bot);
-  console.log(users);
 });
 
 bot.on('message', message => {
   if (message.content === 'ping') {
     message.reply('pong');
   }
+});
+
+bot.on('disconnect', async () => {
+  await db.end();
 });
 
 bot.login(auth.token);

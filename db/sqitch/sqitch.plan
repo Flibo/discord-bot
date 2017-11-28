@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=discordbot
+%uri=https://github.com/Flibo/discord-bot
+
+botschema 2017-11-27T23:32:10Z Jesse Koivukoski <jesse.koivukoski@taitounited.fi> # Add schema
