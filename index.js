@@ -1,11 +1,14 @@
 const Discord = require('discord.js');
 const { Client: pgClient } = require('pg');
-const auth = require('./auth.json');
 const _ = require('lodash');
 const winston = require('winston');
 
+const auth = require('./auth.json');
+const botQueries = require('./db/queries');
+
 const bot = new Discord.Client();
 const db = new pgClient();
+const queries = new botQueries(db);
 
 const UPDATE_INTERVAL = 5000;
 
@@ -22,22 +25,26 @@ const getOnlineUsers = (bot) => {
   return users;
 };
 
-const updateBalance = (bot) => {
+const updateBalance = async bot => {
   const users = getOnlineUsers(bot);
-  console.log('[users]', users);
 
-  /*
-  const text = 'INSERT INTO users(name, email) VALUES($1, $2) RETURNING *';
-  const values = ['brianc', 'brian.m.carlson@gmail.com'];
+  // TODO parallelize and consider some sort of in-memory cache for gets
+  users.forEach(async user => {
+    try {
+      const data = await queries.getUser(user);
+      if (_.isEmpty(data)) {
+        // Create new user
+        await queries.createUser(user);
+        winston.info('Successfully created a new user');
+      } else {
+        // Increment existing user's points
+        await queries.incrementBalance(user);
+      }
+    } catch (error) {
+      winston.error(`Error when querying DB: ${error}`);
+    }
 
-  try {
-    const res = await pool.query(text, values)
-    console.log(res.rows[0])
-    // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-  } catch(err) {
-    console.log(err.stack)
-  }
-  */
+  });
 };
 
 bot.on('ready', async () => {
@@ -54,16 +61,27 @@ bot.on('ready', async () => {
   winston.info('Bot ready and running!');
 
   setInterval(() => updateBalance(bot), UPDATE_INTERVAL);
-
-  const res = await db.query('SELECT $1::text as message', ['Hello world!']);
-  console.log(res.rows[0].message);
-
-
 });
 
-bot.on('message', message => {
-  if (message.content === 'ping') {
-    message.reply('pong');
+bot.on('message', async message => {
+  if (message.content === '!points') {
+    try {
+      let points = await queries.getUser(message.author.id);
+      if (_.has(points, '[0].good_boy_points')) {
+        points = points[0].good_boy_points;
+      } else {
+        throw new Error('DB returned a faulty row');
+      }
+
+      const username = message.author.username;
+
+      message.reply(
+        `user ${username} has ${points} good boy points :PogChamp:`
+      );
+    } catch(error) {
+      winston.error(`Error when responding to !points: ${error}`);
+      message.reply('Something went wrong :FeelsSadMan:');
+    }
   }
 });
 
