@@ -4,7 +4,10 @@
   "description": "A simple Discord bot",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "up": "./wait-for-postgres.sh 0.0.0.0 5432 npm run initdb & docker-compose up || true",
+    "down": "docker-compose down",
+    "start": "npm run up",
+    "node-start": "nodemon index.js",
     "initdb": "./db/init.sh jk secret db 5432 discordbot",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

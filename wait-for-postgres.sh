@@ -9,7 +9,7 @@ while ! pg_isready -h $postgres_host -p $postgres_port -q; do
   sleep 1
 done
 
->&2 echo "Postgres is up - starting up bot"
+>&2 echo "Postgres is up - starting up Sqitch"
 
 # run the command
 exec $cmd
