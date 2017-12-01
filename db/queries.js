@@ -36,13 +36,13 @@ module.exports = class BotQueries {
     }
   }
 
-  async incrementBalance(discord_id) {
+  async incrementBalance(discord_id, amount=1) {
     const text = `
       UPDATE bot.users
-        SET good_boy_points = good_boy_points + 1
+        SET good_boy_points = good_boy_points + $2
       WHERE discord_id = $1;
     `;
-    const values = [discord_id];
+    const values = [discord_id, amount];
 
     try {
       await this.db.query(text, values);

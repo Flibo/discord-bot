@@ -11,6 +11,11 @@ const db = new pgClient();
 const queries = new botQueries(db);
 
 const UPDATE_INTERVAL = 5000;
+const BET_REGEX = /^!bet (all|[0-9]+)$/i; // TODO move this to another file
+
+const coinFlip = () => {
+  return (Math.floor(Math.random() * 2) == 0);
+};
 
 const getOnlineUsers = (bot) => {
   const guildIDs = bot.guilds.map(guild => guild.id);
@@ -64,23 +69,60 @@ bot.on('ready', async () => {
 });
 
 bot.on('message', async message => {
+  // TODO move this logic to another file
   if (message.content === '!points') {
     try {
-      let points = await queries.getUser(message.author.id);
+      let points = await queries.getUser(message.author.id); // TODO functionize
       if (_.has(points, '[0].good_boy_points')) {
         points = points[0].good_boy_points;
       } else {
         throw new Error('DB returned a faulty row');
       }
 
-      const username = message.author.username;
-
       message.reply(
-        `user ${username} has ${points} good boy points :PogChamp:`
+        `you have ${points} good boy points :PogChamp:`
       );
     } catch(error) {
       winston.error(`Error when responding to !points: ${error}`);
-      message.reply('Something went wrong :FeelsSadMan:');
+      message.reply('something went wrong :FeelsSadMan:');
+    }
+  } else if (BET_REGEX.test(message.content)) {
+    let amount = message.content.match(BET_REGEX)[1];
+    const user = message.author.id;
+
+    try {
+      let points = await queries.getUser(user);
+      if (_.has(points, '[0].good_boy_points')) {
+        points = points[0].good_boy_points;
+      } else {
+        throw new Error('DB returned a faulty row');
+      }
+
+      if (amount === 'all') {
+        if (coinFlip()) {
+          await queries.incrementBalance(user, points);
+          message.reply(`you took the risk and doubled your good boy points! You now have ${points*2} points.`);
+        } else {
+          await queries.incrementBalance(user, -points);
+          message.reply('you truly are never lucky! You now have no points.');
+        }
+      } else {
+        amount = parseInt(amount, 10);
+        if (amount <= points) {
+          if (coinFlip()) {
+            await queries.incrementBalance(user, amount);
+            message.reply(`fortune is on your side. You now have ${points+amount} points.`);
+          } else {
+            await queries.incrementBalance(user, -amount);
+            message.reply(`get rekt. You now have ${points-amount} points.`);
+          }
+        } else {
+          message.reply('you don\'t have enough good boy points :FeelsSadMan:');
+        }
+      }
+    } catch (error) {
+      winston.error(`Error when responding to !bet: ${error}`);
+      message.reply('something went wrong :FeelsSadMan:');
     }
   }
 });
