@@ -15,7 +15,7 @@ services:
       - db:db
     depends_on:
       - db
-    entrypoint: ./wait-for-postgres.sh db 5432 ./wait-for-sqitch.sh db 5432 npm run node-start
+    entrypoint: ./scripts/wait-for-postgres.sh db 5432 ./scripts/wait-for-sqitch.sh db 5432 npm run node-start
     restart: always
   db:
     image: kiasaki/alpine-postgres
