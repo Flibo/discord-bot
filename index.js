@@ -19,13 +19,14 @@ const coinFlip = () => {
 
 const getOnlineUsers = (bot) => {
   const guildIDs = bot.guilds.map(guild => guild.id);
-  let users = [];
+  const users = new Set();
   guildIDs.forEach((guildID) => {
     const guild = bot.guilds.get(guildID);
     const guildOnlineUsers = guild.members.filter((user) => {
       return user.presence.status === 'online';
     });
-    users = _.concat(users, guildOnlineUsers.map(member => member.id));
+    const ids = guildOnlineUsers.map(member => member.id);
+    ids.forEach(id => users.add(id));
   });
   return users;
 };
@@ -69,6 +70,8 @@ bot.on('ready', async () => {
 });
 
 bot.on('message', async message => {
+  const PogChamp = bot.emojis.find('name', 'PogChamp');
+  const FeelsSadMan = bot.emojis.find('name', 'FeelsSadMan');
   // TODO move this logic to another file
   if (message.content === '!points') {
     try {
@@ -80,11 +83,11 @@ bot.on('message', async message => {
       }
 
       message.reply(
-        `you have ${points} good boy points :PogChamp:`
+        `you have ${points} good boy points`
       );
     } catch(error) {
       winston.error(`Error when responding to !points: ${error}`);
-      message.reply('something went wrong :FeelsSadMan:');
+      message.reply(`something went wrong ${FeelsSadMan}`);
     }
   } else if (BET_REGEX.test(message.content)) {
     let amount = message.content.match(BET_REGEX)[1];
@@ -101,10 +104,10 @@ bot.on('message', async message => {
       if (amount === 'all') {
         if (coinFlip()) {
           await queries.incrementBalance(user, points);
-          message.reply(`you took the risk and doubled your good boy points! You now have ${points*2} points.`);
+          message.reply(`you took the risk and doubled your good boy points! You now have ${points*2} points. ${PogChamp}`);
         } else {
           await queries.incrementBalance(user, -points);
-          message.reply('you truly are never lucky! You now have no points.');
+          message.reply(`you truly are never lucky! You now have no points. ${FeelsSadMan}`);
         }
       } else {
         amount = parseInt(amount, 10);
@@ -117,12 +120,12 @@ bot.on('message', async message => {
             message.reply(`get rekt. You now have ${points-amount} points.`);
           }
         } else {
-          message.reply('you don\'t have enough good boy points :FeelsSadMan:');
+          message.reply(`you don't have enough good boy points ${FeelsSadMan}`);
         }
       }
     } catch (error) {
       winston.error(`Error when responding to !bet: ${error}`);
-      message.reply('something went wrong :FeelsSadMan:');
+      message.reply(`something went wrong ${FeelsSadMan}`);
     }
   }
 });
